@@ -7,7 +7,7 @@
 
 #define TRUE 1
 
-/* TWEET INFORMATION */
+/* OPEN TWEETS - INFORMATION */
 #define TWEET_FILE "twitter-info/tweets.txt"
 #define USERNAME_FILE "twitter-info/usernames.txt"
 #define TWEET_SIZE 280 + 2
@@ -22,21 +22,21 @@
 #define PAUSA_LEITURA 20
 #define PAUSA_PSICOLOGO 10
 
-void* open_twitter_info();
+void open_twitter_info();
 
-void* beatriz_e_seguidores(char* user);
-void* funcionarios(char* user);
-void* elon_musk();
-void* usuarios_que_retweetam(char* user);
+void beatriz_e_seguidores(char* user);
+void funcionarios(char* user);
+void elon_musk();
+void usuarios_que_retweetam(char* user);
 
 char* pensar_em_tweet(char* user);
-void* lendo_livro(char *user);
-void* indo_no_psicologo(char *user);
-void* print_tweet(char *user, char *tweet);
-void* mover_tweets_para_twitter(char *funcionario);
-void* elon_musk_lendo_tweets();
-void* elon_musk_esvaziou_twitter();
-void* usuarios_retweetando(char *user);
+void lendo_livro(char *user);
+void indo_no_psicologo(char *user);
+void print_tweet(char *user, char *tweet);
+void mover_tweets_para_twitter(char *funcionario);
+void elon_musk_lendo_tweets();
+void elon_musk_esvaziou_twitter();
+void usuarios_retweetando(char *user);
 
 char (*tweets)[TWEET_SIZE] = NULL, (*usernames)[MAX_QUANT_USERNAMES] = NULL;
 
@@ -52,14 +52,31 @@ pthread_cond_t cond_funcionarios = PTHREAD_COND_INITIALIZER;
 
 int tweets_que_faltam = TAMANHO_DATABASE_TWITTER;
 
-int main() {
+void * bia(void *user);
 
+int main() {
     open_twitter_info();
 
     srand(time(NULL));
 
     sem_init(&slots_disponiveis, 0, QUANT_SLOTS);
     sem_init(&slots_indisponiveis, 0, 0);
+
+    // INICIALIZE THREADS AQUI
+    // INICIALIZE THREADS AQUI
+
+    int * id;
+
+    pthread_t beatriz_e_seguidores_threads[quant_users];
+    // pthread_t
+    // pthread_t
+
+    for (int index = 0; index < quant_users; index++) {
+        char* user_atual = usernames[quant_users];
+        id = (int *) malloc(sizeof(int));
+        *id = index;
+        pthread_create(&(beatriz_e_seguidores_threads[index]), NULL, bia, "@beatriz");
+    }
 
     // INICIALIZE THREADS AQUI
     // INICIALIZE THREADS AQUI
@@ -75,19 +92,24 @@ int main() {
 
 /* AÇÕES */
 
-// void* lendo_livro(char *user) {
-//     printf("\e[1m%s\e[m deu uma pauda para ler!\n\n", user);
-//     sleep(5);
-//     printf("\e[1m%s\e[m saiu de sua pausa de leitura!\n\n", user);
-// }
+void * bia(void *user) {
+    printf("thread() entered with argument '%s'\n", user);
+    return NULL;
+}
 
-// void* indo_no_psicologo(char *user) {
+void lendo_livro(char *user) {
+    printf("\e[1m%s\e[m deu uma pauda para ler!\n\n", user);
+    sleep(5);
+    printf("\e[1m%s\e[m saiu de sua pausa de leitura!\n\n", user);
+}
+
+// void indo_no_psicologo(char *user) {
 //     printf("O funcionário \e[1m%s\e[m saiu para ir ao psicólogo!\n\n", user);
 //     sleep(5);
 //     printf("O funcionário \e[1m%s\e[m voltou do psicólogo!\n\n", user);
 // }
 
-void* print_tweet(char *user, char *tweet) {
+void print_tweet(char *user, char *tweet) {
     printf("\e[1m%s\e[m tweetou:\n\n   '%s'\n\n", user, tweet);
 }
 
@@ -97,48 +119,48 @@ char* pensar_em_tweet(char* user) {
     return tweets[rand() % quant_tweets];
 }
 
-// void* vai_mover_tweets(char *funcionario) {
+// void vai_mover_tweets(char *funcionario) {
 //     printf("O funcionário %s vai mover um tweet para o Twitter!\n\n", funcionario);
 // }
 
-// void* mover_tweets_para_twitter(char *funcionario) {
+// void mover_tweets_para_twitter(char *funcionario) {
 //     printf("O funcionário %s está movendo os tweets para o Twitter!\n\n", funcionario);
 //     sleep(10);
 // }
 
-// void* elon_musk_lendo_tweets() {
+// void elon_musk_lendo_tweets() {
 //     printf("Elon Musk está lendo tweets e ficando bravo!\n");
 //     sleep(7);
 // }
 
-// void* elon_musk_esvaziou_twitter() {
+// void elon_musk_esvaziou_twitter() {
 //     sleep(10);
 //     printf("Elon Musk se irritou e deletou todos os tweets do Twitter!\n");
 // }
 
-// void* usuarios_retweetando(char *user) {
+// void usuarios_retweetando(char *user) {
 //     printf("O usuário %s está retweetando um tweet!\n\n", user);
 // }
 
 /* THREADS */
 
-// void* beatriz_e_seguidores(char* user) {
-//     int cansaco = 0;
+void beatriz_e_seguidores(char* user) {
+    int cansaco = 0;
 
-//     while (TRUE) {
-//         sem_wait(&slots_disponiveis);
-//             int tweet = pensar_em_tweet(user);
-//         sem_post(&slots_indisponiveis);
+    while (TRUE) {
+        sem_wait(&slots_disponiveis);
+            char* tweet = pensar_em_tweet(user);
+        sem_post(&slots_indisponiveis);
 
-//         print_tweet(user, tweet);
-//         cansaco++;
+        print_tweet(user, tweet);
+        cansaco++;
 
-//         if (cansaco == PAUSA_LEITURA) {
-//             lendo_livro(user);
-//             cansaco = 0;
-//         }
-//     }
-// }
+        if (cansaco == PAUSA_LEITURA) {
+            lendo_livro(user);
+            cansaco = 0;
+        }
+    }
+}
 
 // void* funcionarios(char* funcionario) {
 //     int cansaco = 0;
@@ -192,11 +214,11 @@ char* pensar_em_tweet(char* user) {
 //     }
 // }
 
-void* usuarios_que_retweetam(char* user) {}
+// void* usuarios_que_retweetam(char* user) {}
 
 /* ABRIR ARQUIVO */
 
-void* open_twitter_info() {
+void open_twitter_info() {
 
     FILE *tweet_file = fopen(TWEET_FILE, "r");
     FILE *username_file = fopen(USERNAME_FILE, "r");
