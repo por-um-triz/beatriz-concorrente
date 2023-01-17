@@ -67,7 +67,7 @@ int main() {
 
     int * id;
 
-    pthread_t beatriz_e_seguidores_threads[quant_users];
+    pthread_t beatriz_threads[quant_users];
     // pthread_t
     // pthread_t
 
@@ -75,14 +75,11 @@ int main() {
         char* user_atual = usernames[quant_users];
         id = (int *) malloc(sizeof(int));
         *id = index;
-        pthread_create(&(beatriz_e_seguidores_threads[index]), NULL, bia, "@beatriz");
+        pthread_create(&(beatriz_threads[index]), NULL, bia, "@beatriz");
     }
 
-    // INICIALIZE THREADS AQUI
-    // INICIALIZE THREADS AQUI
-
-    char* tweet = pensar_em_tweet("@beatriz");
-    print_tweet("@beatriz", tweet);
+    // INICIALIZE THREADS EM CIMA
+    // INICIALIZE THREADS EM CIMA
 
     free(tweets);
     free(usernames);
@@ -91,11 +88,6 @@ int main() {
 }
 
 /* AÇÕES */
-
-void * bia(void *user) {
-    printf("thread() entered with argument '%s'\n", user);
-    return NULL;
-}
 
 void lendo_livro(char *user) {
     printf("\e[1m%s\e[m deu uma pauda para ler!\n\n", user);
@@ -144,7 +136,14 @@ char* pensar_em_tweet(char* user) {
 
 /* THREADS */
 
-void beatriz_e_seguidores(char* user) {
+void * bia(void *arg) {
+    char* user = ((char *) arg);
+    printf("thread() entered with argument '%s'\n", user);
+    return NULL;
+}
+
+void beatriz_e_seguidores(void* arg) {
+    char* user = ((char *) arg);
     int cansaco = 0;
 
     while (TRUE) {
@@ -162,35 +161,36 @@ void beatriz_e_seguidores(char* user) {
     }
 }
 
-// void* funcionarios(char* funcionario) {
-//     int cansaco = 0;
+void* funcionarios(char* arg) {
+    char* funcionario = ((char *) arg);
+    int cansaco = 0;
 
-//     while (TRUE) {
-//         sem_wait(&slots_indisponiveis);
-//             vai_mover_tweets(funcionario);
+    while (TRUE) {
+        sem_wait(&slots_indisponiveis);
+            vai_mover_tweets(funcionario);
 
-//         pthread_mutex_lock(&database_twitter);
-//             while (tweets_que_faltam == NULL) {
-//                 printf("A database está cheia! Chamamos o Elon Musk!\n\n");
-//                 pthread_cond_signal(&cond_elon_musk);
+        pthread_mutex_lock(&database_twitter);
+            while (tweets_que_faltam == NULL) {
+                printf("A database está cheia! Chamamos o Elon Musk!\n\n");
+                pthread_cond_signal(&cond_elon_musk);
 
-//                 pthread_cond_wait(&cond_funcionarios, &database_twitter);
-//                 printf("O funcionário %s vai dormir!", funcionario);
-//             }
+                pthread_cond_wait(&cond_funcionarios, &database_twitter);
+                printf("O funcionário %s vai dormir!", funcionario);
+            }
 
-//             mover_tweets_para_twitter(funcionario);
-//             tweets_que_faltam--;
-//         pthread_mutex_unlock(&database_twitter);
+            mover_tweets_para_twitter(funcionario);
+            tweets_que_faltam--;
+        pthread_mutex_unlock(&database_twitter);
 
-//         sem_post(&slots_disponiveis);
-//         cansaco++;
+        sem_post(&slots_disponiveis);
+        cansaco++;
 
-//         if (cansaco == PAUSA_LEITURA) {
-//             indo_no_psicologo(funcionario);
-//             cansaco = 0;
-//         }
-//     }
-// }
+        if (cansaco == PAUSA_LEITURA) {
+            indo_no_psicologo(funcionario);
+            cansaco = 0;
+        }
+    }
+}
 
 // void* elon_musk() {
 //     int cansaco = 0;
