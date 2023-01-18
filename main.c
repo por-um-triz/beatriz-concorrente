@@ -6,6 +6,7 @@
 #include <semaphore.h>
 
 #define TRUE 1
+#define ZERO 0
 
 /* OPEN TWEETS - INFORMATION */
 #define TWEET_FILE "twitter-info/tweets.txt"
@@ -16,24 +17,26 @@
 #define MAX_QUANT_USERNAMES 50
 
 /* PROBLEM INFORMATION */
+#define QUANT_FUNCIONARIOS 3
+
 #define TAMANHO_DATABASE_TWITTER 20
-#define QUANT_SLOTS 8
+#define QUANT_SLOTS 6
 
 #define PAUSA_LEITURA 20
 #define PAUSA_PSICOLOGO 10
 
 void open_twitter_info();
 
-void beatriz_e_seguidores(char* user);
-void funcionarios(char* user);
-void elon_musk();
-void usuarios_que_retweetam(char* user);
+void* beatriz_e_seguidores(void* arg);
+void* funcionarios(void* arg);
+// void* elon_musk();
+// void* usuarios_que_retweetam(char* user);
 
 char* pensar_em_tweet(char* user);
 void lendo_livro(char *user);
-void indo_no_psicologo(char *user);
+void indo_no_psicologo(int funcionario);
 void print_tweet(char *user, char *tweet);
-void mover_tweets_para_twitter(char *funcionario);
+void mover_tweets_para_twitter(int funcionario);
 void elon_musk_lendo_tweets();
 void elon_musk_esvaziou_twitter();
 void usuarios_retweetando(char *user);
@@ -65,41 +68,59 @@ int main() {
     // INICIALIZE THREADS AQUI
     // INICIALIZE THREADS AQUI
 
-    int * id;
+    pthread_t beatriz_teste[quant_users];
 
     pthread_t beatriz_threads[quant_users];
-    // pthread_t
-    // pthread_t
+    pthread_t funcionarios_thread[quant_users];
+
+    // for (int index = 0; index < quant_users; index++) {
+    //     char* user_atual = usernames[index];
+    //     pthread_create(&(beatriz_teste[index]), NULL, bia, user_atual);
+    // }
 
     for (int index = 0; index < quant_users; index++) {
-        char* user_atual = usernames[quant_users];
+        char* user_atual = usernames[index];
+        pthread_create(&(beatriz_threads[index]), NULL, beatriz_e_seguidores, user_atual);
+    }
+
+    int * id;
+
+    for (int index = 0; index < QUANT_FUNCIONARIOS; index++) {
         id = (int *) malloc(sizeof(int));
         *id = index;
-        pthread_create(&(beatriz_threads[index]), NULL, bia, "@beatriz");
+        pthread_create(&(funcionarios_thread[index]), NULL, funcionarios, (void *) (id+1));
     }
+
+    // pthread_create(&elon_musk_thread, NULL, elon_musk);
 
     // INICIALIZE THREADS EM CIMA
     // INICIALIZE THREADS EM CIMA
+
+    for (int i = 0; i < quant_users; i++) 
+        pthread_join(beatriz_threads[i], NULL);
+
+    for (int i = 0; i < QUANT_FUNCIONARIOS; i++) 
+        pthread_join(funcionarios_thread[i], NULL);
+
+    // pthread_join(elon_musk_thread, NULL);
 
     free(tweets);
     free(usernames);
-
-    return 0;
 }
 
 /* AÇÕES */
 
 void lendo_livro(char *user) {
-    printf("\e[1m%s\e[m deu uma pauda para ler!\n\n", user);
+    printf("\e[1m%s\e[m deu uma pausa para ler!\n\n", user);
     sleep(5);
     printf("\e[1m%s\e[m saiu de sua pausa de leitura!\n\n", user);
 }
 
-// void indo_no_psicologo(char *user) {
-//     printf("O funcionário \e[1m%s\e[m saiu para ir ao psicólogo!\n\n", user);
-//     sleep(5);
-//     printf("O funcionário \e[1m%s\e[m voltou do psicólogo!\n\n", user);
-// }
+void indo_no_psicologo(int funcionario) {
+    printf("O funcionário \e[1m%d\e[m saiu para ir ao psicólogo!\n\n", funcionario);
+    sleep(5);
+    printf("O funcionário \e[1m%d\e[m voltou do psicólogo!\n\n", funcionario);
+}
 
 void print_tweet(char *user, char *tweet) {
     printf("\e[1m%s\e[m tweetou:\n\n   '%s'\n\n", user, tweet);
@@ -111,14 +132,14 @@ char* pensar_em_tweet(char* user) {
     return tweets[rand() % quant_tweets];
 }
 
-// void vai_mover_tweets(char *funcionario) {
-//     printf("O funcionário %s vai mover um tweet para o Twitter!\n\n", funcionario);
-// }
+void vai_mover_tweets(int funcionario) {
+    printf("O funcionário %d vai mover um tweet para o Twitter!\n\n", funcionario);
+}
 
-// void mover_tweets_para_twitter(char *funcionario) {
-//     printf("O funcionário %s está movendo os tweets para o Twitter!\n\n", funcionario);
-//     sleep(10);
-// }
+void mover_tweets_para_twitter(int funcionario) {
+    printf("O funcionário %d está movendo os tweets para o Twitter!\n\n", funcionario);
+    sleep(10);
+}
 
 // void elon_musk_lendo_tweets() {
 //     printf("Elon Musk está lendo tweets e ficando bravo!\n");
@@ -142,7 +163,7 @@ void * bia(void *arg) {
     return NULL;
 }
 
-void beatriz_e_seguidores(void* arg) {
+void * beatriz_e_seguidores(void* arg) {
     char* user = ((char *) arg);
     int cansaco = 0;
 
@@ -161,8 +182,8 @@ void beatriz_e_seguidores(void* arg) {
     }
 }
 
-void* funcionarios(char* arg) {
-    char* funcionario = ((char *) arg);
+void* funcionarios(void* arg) {
+    int funcionario = *((int *) arg);
     int cansaco = 0;
 
     while (TRUE) {
@@ -170,12 +191,12 @@ void* funcionarios(char* arg) {
             vai_mover_tweets(funcionario);
 
         pthread_mutex_lock(&database_twitter);
-            while (tweets_que_faltam == NULL) {
+            while (tweets_que_faltam == ZERO) {
                 printf("A database está cheia! Chamamos o Elon Musk!\n\n");
                 pthread_cond_signal(&cond_elon_musk);
 
                 pthread_cond_wait(&cond_funcionarios, &database_twitter);
-                printf("O funcionário %s vai dormir!", funcionario);
+                printf("O funcionário %d vai dormir!", funcionario);
             }
 
             mover_tweets_para_twitter(funcionario);
