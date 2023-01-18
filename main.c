@@ -29,7 +29,7 @@ void open_twitter_info();
 
 void* beatriz_e_seguidores(void* arg);
 void* funcionarios(void* arg);
-// void* elon_musk();
+void* elon_musk();
 // void* usuarios_que_retweetam(char* user);
 
 char* pensar_em_tweet(char* user);
@@ -65,13 +65,11 @@ int main() {
     sem_init(&slots_disponiveis, 0, QUANT_SLOTS);
     sem_init(&slots_indisponiveis, 0, 0);
 
-    // INICIALIZE THREADS AQUI
-    // INICIALIZE THREADS AQUI
-
-    pthread_t beatriz_teste[quant_users];
+    // pthread_t beatriz_teste[quant_users];
 
     pthread_t beatriz_threads[quant_users];
     pthread_t funcionarios_thread[quant_users];
+    pthread_t elon_musk_thread;
 
     // for (int index = 0; index < quant_users; index++) {
     //     char* user_atual = usernames[index];
@@ -87,14 +85,11 @@ int main() {
 
     for (int index = 0; index < QUANT_FUNCIONARIOS; index++) {
         id = (int *) malloc(sizeof(int));
-        *id = index;
-        pthread_create(&(funcionarios_thread[index]), NULL, funcionarios, (void *) (id+1));
+        *id = index + 1;
+        pthread_create(&(funcionarios_thread[index]), NULL, funcionarios, (void *) (id));
     }
 
-    // pthread_create(&elon_musk_thread, NULL, elon_musk);
-
-    // INICIALIZE THREADS EM CIMA
-    // INICIALIZE THREADS EM CIMA
+    pthread_create(&elon_musk_thread, NULL, elon_musk, NULL);
 
     for (int i = 0; i < quant_users; i++) 
         pthread_join(beatriz_threads[i], NULL);
@@ -102,7 +97,7 @@ int main() {
     for (int i = 0; i < QUANT_FUNCIONARIOS; i++) 
         pthread_join(funcionarios_thread[i], NULL);
 
-    // pthread_join(elon_musk_thread, NULL);
+    pthread_join(elon_musk_thread, NULL);
 
     free(tweets);
     free(usernames);
@@ -141,15 +136,15 @@ void mover_tweets_para_twitter(int funcionario) {
     sleep(10);
 }
 
-// void elon_musk_lendo_tweets() {
-//     printf("Elon Musk está lendo tweets e ficando bravo!\n");
-//     sleep(7);
-// }
+void elon_musk_lendo_tweets() {
+    printf("Elon Musk está lendo tweets e ficando bravo!\n");
+    sleep(7);
+}
 
-// void elon_musk_esvaziou_twitter() {
-//     sleep(10);
-//     printf("Elon Musk se irritou e deletou todos os tweets do Twitter!\n");
-// }
+void elon_musk_esvaziou_twitter() {
+    sleep(10);
+    printf("Elon Musk se irritou e deletou todos os tweets do Twitter!\n");
+}
 
 // void usuarios_retweetando(char *user) {
 //     printf("O usuário %s está retweetando um tweet!\n\n", user);
@@ -213,27 +208,27 @@ void* funcionarios(void* arg) {
     }
 }
 
-// void* elon_musk() {
-//     int cansaco = 0;
+void* elon_musk() {
+    int cansaco = 0;
 
-//     while (TRUE) {
-//         pthread_mutex_lock(&database_twitter);
-//             while (tweets_que_faltam != 0) {
-//                 printf("O Twitter ainda não está cheio! O Elon Musk vai dormir!\n\n");
-//                 pthread_cond_wait(&cond_elon_musk, &database_twitter);
-//             }
-//         pthread_mutex_unlock(&database_twitter);
+    while (TRUE) {
+        pthread_mutex_lock(&database_twitter);
+            while (tweets_que_faltam != 0) {
+                printf("O Twitter ainda não está cheio! O Elon Musk vai dormir!\n\n");
+                pthread_cond_wait(&cond_elon_musk, &database_twitter);
+            }
+        pthread_mutex_unlock(&database_twitter);
 
-//         elon_musk_lendo_tweets();
+        elon_musk_lendo_tweets();
 
-//         pthread_mutex_lock(&database_twitter);
-//             tweets_que_faltam = TAMANHO_DATABASE_TWITTER;
-//             pthread_cond_broadcast(&cond_funcionarios);
-//         pthread_mutex_unlock(&database_twitter);
+        pthread_mutex_lock(&database_twitter);
+            tweets_que_faltam = TAMANHO_DATABASE_TWITTER;
+            pthread_cond_broadcast(&cond_funcionarios);
+        pthread_mutex_unlock(&database_twitter);
 
-//         elon_musk_esvaziou_twitter();
-//     }
-// }
+        elon_musk_esvaziou_twitter();
+    }
+}
 
 // void* usuarios_que_retweetam(char* user) {}
 
