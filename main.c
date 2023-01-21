@@ -152,11 +152,11 @@ void elon_musk_esvaziou_twitter() {
 
 /* THREADS */
 
-void * bia(void *arg) {
-    char* user = ((char *) arg);
-    printf("thread() entered with argument '%s'\n", user);
-    return NULL;
-}
+// void * bia(void *arg) {
+//     char* user = ((char *) arg);
+//     printf("thread() entered with argument '%s'\n", user);
+//     return NULL;
+// }
 
 void * beatriz_e_seguidores(void* arg) {
     char* user = ((char *) arg);
