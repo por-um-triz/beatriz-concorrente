@@ -8,7 +8,7 @@
 #define TRUE 1
 #define ZERO 0
 
-/* OPEN TWEETS - INFORMATION */
+/* OPEN TWEETS - INFORMAÇÕES */
 #define TWEET_FILE "twitter-info/tweets.txt"
 #define USERNAME_FILE "twitter-info/usernames.txt"
 #define TWEET_SIZE 280 + 2
@@ -16,13 +16,13 @@
 #define USERNAME_SIZE 15 + 2
 #define MAX_QUANT_USERNAMES 50
 
-/* PROBLEM INFORMATION */
+/* INFORMAÇÕES DO PROBLEMA */
 #define QUANT_FUNCIONARIOS 3
 #define QUANT_SLOTS 6
 #define TAMANHO_DATABASE_TWITTER 20
 
-#define PAUSA_LEITURA 20
-#define PAUSA_PSICOLOGO 10
+#define PAUSA_LEITURA 4
+#define PAUSA_PSICOLOGO 4
 
 void open_twitter_info();
 
@@ -93,11 +93,11 @@ int main() {
 
 char* pensar_em_tweet(char* user) {
     printf("\e[1m%s\e[m está pensando em um tweet para escrever...\n\n", user);
-    sleep(2);
     return tweets[rand() % quant_tweets];
 }
 
 void print_tweet(char *user, char *tweet) {
+    sleep(rand()%3);
     printf("\e[1m%s\e[m tweetou:\n\n   '%s'\n\n", user, tweet);
 }
 
@@ -109,15 +109,15 @@ int lendo_livro(char *user) {
     return 0;
 }
 
-void mover_tweets_para_twitter(int funcionario) {
-    printf("O funcionário %d está movendo os tweets para o Twitter!\n\n", funcionario);
+void mover_tweets_para_database(int funcionario) {
+    printf("O funcionário %d está movendo o tweet para a database!\n\n", funcionario);
     sleep(3);
 }
 
 void terminou_de_mover_tweets(int funcionario, int tweets_que_faltam) {
     sleep(3);
     printf(
-        "Funcionário %d moveu um tweet para a database. Slots disponíveis no Twitter = %d\n\n",
+        "Funcionário %d moveu um tweet para a database. Espaço disponível na database: %d\n\n",
         funcionario,
         tweets_que_faltam
     );
@@ -132,13 +132,13 @@ int indo_pro_psicologo(int funcionario) {
 }
 
 void elon_musk_lendo_tweets() {
-    printf("Elon Musk está lendo tweets e ficando bravo!\n\n");
+    printf("Elon Musk está lendo tweets da database e ficando bravo!\n\n");
     sleep(7);
 }
 
-void elon_musk_esvaziou_twitter() {
+void elon_musk_esvaziou_database() {
     sleep(10);
-    printf("ATENÇÃO: Elon Musk se irritou e deletou todos os tweets do Twitter!\n");
+    printf("ATENÇÃO: Elon Musk se irritou e deletou todos os tweets da database!\n");
     printf("Os usuários podem voltar a tweetar!\n");
 }
 
@@ -146,75 +146,90 @@ void elon_musk_esvaziou_twitter() {
 
 void * beatriz_e_seguidores(void *arg) {
     char* user = ((char *) arg);
-    int cansaco = 0;
+    int quer_ler = 0;  // desejo de leitura do usuário zerado
 
     while (TRUE) {
-        char * tweet = pensar_em_tweet(user);
+        char * tweet = pensar_em_tweet(user);  // usuário pensa em tweet
 
-        sem_wait(&slots_disponiveis);
-            print_tweet(user, tweet);
-        sem_post(&slots_indisponiveis);
+        sem_wait(&slots_disponiveis);    // usuário pega um espaço disponível no Twitter
+            print_tweet(user, tweet);    // usuário tweeta
+        sem_post(&slots_indisponiveis);  // o usuário incrementa a quantidade de espaços ocupados
 
-        cansaco++;
+        quer_ler++;  // incrementa o desejo de leitura do usuário
 
-        if (cansaco == PAUSA_LEITURA)
-            cansaco = lendo_livro(user);
+        // se o desejo de leitura atingir a quantidade necessária para a pausa
+        // de leitura, o usuário le um livro e o desejo é zerado
+        if (quer_ler == PAUSA_LEITURA)
+            quer_ler = lendo_livro(user);
     }
 }
 
 void * funcionarios(void *arg) {
     int funcionario = *((int *) arg);
-    int cansaco = 0;
+    int psicologo = 0;  // necessidade de psicólogo do funcionário zerado
 
     while (TRUE) {
-        sem_wait(&slots_indisponiveis);
+        pthread_mutex_lock(&database_twitter);
+            sem_wait(&slots_indisponiveis);  // funcionário decrementa os espaço indisponíveis
+        pthread_mutex_unlock(&database_twitter);
 
-            pthread_mutex_lock(&database_twitter);
-                while (tweets_que_faltam == 0) {
+            pthread_mutex_lock(&database_twitter);  // lock para consultar variável
+
+                while (tweets_que_faltam == 0) {  // caso a database esteja cheia
                     printf("O Twitter está cheio, funcionário %d vai dormir\n\n", funcionario);
 
-                    pthread_cond_signal(&cond_elon_musk);
-                    pthread_cond_wait(&cond_funcionarios, &database_twitter);
+                    pthread_cond_signal(&cond_elon_musk);                      // chama o Elon Musk
+                    pthread_cond_wait(&cond_funcionarios, &database_twitter);  // funcionário dorme
                 }
 
-                mover_tweets_para_twitter(funcionario);
+                mover_tweets_para_database(funcionario);  // funcionário move um tweet para a database
+
+                // decrementa a quantidade de tweets que faltam para encher a database
                 tweets_que_faltam--;
+
+                // funcionário terminou de mover tweet para a database
                 terminou_de_mover_tweets(funcionario, tweets_que_faltam);
 
-            pthread_mutex_unlock(&database_twitter);
-        sem_post(&slots_disponiveis);
+            pthread_mutex_unlock(&database_twitter);  // libera o lock para consultar variável
 
-        cansaco++;
+        sem_post(&slots_disponiveis);  // funcionário incrementa os espaço disponíveis
 
-        if (cansaco == PAUSA_PSICOLOGO)
-            cansaco = indo_pro_psicologo(funcionario);
+        psicologo++;  // incrementa a necessidade de ir ao psicólogo
+
+        // se a necessidade de ir ao psicólogo atingir a quantidade necessária
+        // para ir ao psicólogo, o funcionário vai e a necessidade é zerada
+        if (psicologo == PAUSA_PSICOLOGO)
+            psicologo = indo_pro_psicologo(funcionario);
     }
 }
 
 void * elon_musk(void *arg) {
     while (TRUE) {
-        sleep(20);
+        sleep(20);  // Elon Musk chegando
         printf("Elon Musk apareceu na empresa!\n\n");
         
-        pthread_mutex_lock(&database_twitter);
+        pthread_mutex_lock(&database_twitter);  // lock para consultar variável
 
-            while (tweets_que_faltam != ZERO) {
+            while (tweets_que_faltam != ZERO) {  // caso a database não esteja cheia
                 printf("A database ainda não está cheia! Elon Musk volta depois!\n\n");
-                pthread_cond_wait(&cond_elon_musk, &database_twitter);
+                pthread_cond_wait(&cond_elon_musk, &database_twitter);  // Elon Musk dorme
             }
 
-        pthread_mutex_unlock(&database_twitter);
+        pthread_mutex_unlock(&database_twitter);  // libera lock para consultar variável
 
-        elon_musk_lendo_tweets();
+        elon_musk_lendo_tweets();  // Elon Musk lê os tweets e se irrita
 
-        pthread_mutex_lock(&database_twitter);
+        pthread_mutex_lock(&database_twitter);  // lock para consultar variável
 
+            // restaura a quantidade de tweets que faltam para o tamanho da database
             tweets_que_faltam = TAMANHO_DATABASE_TWITTER;
+
+            // acorda todos os funcionários
             pthread_cond_broadcast(&cond_funcionarios);
 
-        pthread_mutex_unlock(&database_twitter);
+        pthread_mutex_unlock(&database_twitter);  // libera lock para consultar variável
 
-        elon_musk_esvaziou_twitter();
+        elon_musk_esvaziou_database();  // Elon Musk avisa que esvaziou a database
     }
 }
 
@@ -222,15 +237,18 @@ void * elon_musk(void *arg) {
 
 void open_twitter_info() {
 
-    FILE *tweet_file = fopen(TWEET_FILE, "r");
-    FILE *username_file = fopen(USERNAME_FILE, "r");
+    FILE *tweet_file = fopen(TWEET_FILE, "r");        // arquivo de tweets
+    FILE *username_file = fopen(USERNAME_FILE, "r");  // arquivo de usuários
 
+    // garantindo memória para array de tweets
     if (!(tweets = malloc(MAX_QUANT_TWEETS * sizeof *tweets)))
         exit(EXIT_FAILURE);
 
+    // garantindo memória para array de usuários
     if (!(usernames = malloc(MAX_QUANT_USERNAMES * sizeof *usernames)))
         exit(EXIT_FAILURE);
 
+    // abre o arquivo de tweets e armazena cada linha em array
     while (
         quant_tweets < MAX_QUANT_TWEETS && fgets(tweets[quant_tweets], TWEET_SIZE, tweet_file))
     {
@@ -240,6 +258,7 @@ void open_twitter_info() {
         quant_tweets++;
     }
 
+    // abre o arquivo de usuários e armazena cada linha em array
     while (
         quant_users < MAX_QUANT_USERNAMES && fgets(usernames[quant_users], USERNAME_SIZE, username_file))
     {
@@ -249,6 +268,7 @@ void open_twitter_info() {
         quant_users++;
     }
 
+    // fecha os arquivos
     fclose(tweet_file);
     fclose(username_file);
 }
