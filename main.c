@@ -169,9 +169,7 @@ void * funcionarios(void *arg) {
     int psicologo = 0;  // necessidade de psicólogo do funcionário zerado
 
     while (TRUE) {
-        pthread_mutex_lock(&database_twitter);
             sem_wait(&slots_indisponiveis);  // funcionário decrementa os espaço indisponíveis
-        pthread_mutex_unlock(&database_twitter);
 
             pthread_mutex_lock(&database_twitter);  // lock para consultar variável
 
