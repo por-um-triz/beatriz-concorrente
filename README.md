@@ -2,6 +2,8 @@
 
 > Leia o relatório contido no arquivo `200067184___PC.pdf`.
 
+![Eu e Você](https://www.peanuts.com/sites/default/files/wo-comic-4.png)
+
 Diante do semestre cursado, faz-se necessária a aplicação dos conceitos aprendidos através da eloboração de um trabalho prático, o qual consiste na aplicação de ferramentas para concorrência afim de otimizar as atividades exercidas por funcionários do _Twitter_.
 
 Ao longo desse relatório, apresento conceitos e soluções para um problema que coloca em prova o conhecimento do conteúdo de Programação Concorrente ministrado em sala durante o semestre.
