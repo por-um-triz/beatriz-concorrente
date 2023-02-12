@@ -17,12 +17,12 @@ Beatriz e seus seguidores são usuários do _Twitter_ e _tweetam_ muito. _Tweeta
 
 Os funcionários também se cansam de aturar Elon Musk e, eventualmente, precisam ir ao psicólogo devido à grande carga de trabalho.
 
-## Beatriz e Seguidores
+### Beatriz e Seguidores
 Beatriz e seus seguidores (usuários) pensam em um _tweet_ para escrever e usam um espaço disponível do _Twitter_, caso exista, para escreverem seus _tweets_.
 
 Se Beatriz ou um de seus seguidores atingir a quantidade necessária de tédio para parar e ler um livro, os usuários fazem uma pausa de alguns segundos e voltam prontamente para continuar seu trabalho de escrita de _tweets_.
 
-## Funcionários
+### Funcionários
 Enquanto não existe um serviço que mova os _tweets_ para a _database_ de forma automatizada, os funcionários da empresa trabalham para colocá-los manualmente da base de dados.
 
 Caso haja espaços indisponíveis no _Twitter_, os funcionários levam esses _tweets_ para a base de dados, onde, depois de cheia, será consultada pelo Elon Musk.
@@ -31,7 +31,7 @@ Caso, ao tentar mover um _tweet_, o funcionário perceba que a _database_ está 
 
 Caso um dos funcionários atinja a quantidade necessária de necessidade de ir ao psicólogo, os mesmos fazem uma pausa de alguns segundos e voltam prontamente para continuar seu trabalho na empresa.
 
-## Elon Musk
+### Elon Musk
 Elon Musk comprou o site em um impulso motivado por sua crise de meia idade e agora enfrenta dificuldades para gerenciar a empresa e a integridade do _Twitter_.
 
 Seu papel consiste em ler os _tweets_ armazenados na _database_ pelos funcionários, se irritar com as bobeiras lidas e, em um impulso de raiva, apagar todo o material guardado.
